@@ -652,7 +652,7 @@ function Get-FreshServiceTicket {
             ParameterSetName = 'id',
             Position = 1
         )]
-        [ValidateSet('tags', 'conversations', 'requester', 'stats', 'problem', 'assets', 'change', 'related_tickets', 'requested_for', 'department', 'feedback')]
+        [ValidateSet('tags', 'conversations', 'requester', 'stats', 'problem', 'assets', 'change', 'related_tickets', 'requested_for', 'department', 'feedback', 'offboarding_context', 'onboarding_context')]
         [string[]]$include,
         [Parameter(
             Mandatory = $false,
@@ -691,7 +691,7 @@ function Get-FreshServiceTicket {
             ParameterSetName = 'default',
             Position = 6
         )]
-          [ValidateSet('Service Request', 'Incident', 'Alert')]
+        [ValidateSet('Service Request', 'Incident', 'Alert')]
         [string[]]$type,
         [Parameter(
             Mandatory = $false,
@@ -744,7 +744,7 @@ function Get-FreshServiceTicket {
     )
     begin {
 
-        $PrivateData  = $MyInvocation.MyCommand.Module.PrivateData
+        $PrivateData = $MyInvocation.MyCommand.Module.PrivateData
 
         if (!$PrivateData.FreshserviceBaseUri) {
             throw "No connection found!  Setup a new Freshservice connection with New-FreshServiceConnection and then Connect-FreshService. Set a default connection with New-FreshServiceConnection or Set-FreshConnection to automatically connect when importing the module."
@@ -752,10 +752,9 @@ function Get-FreshServiceTicket {
 
         $qry = [System.Web.HttpUtility]::ParseQueryString([String]::Empty)
 
-        if ($fields){
+        if ($fields) {
             $uri = [System.UriBuilder]('{0}/ticket_form_fields' -f $PrivateData['FreshserviceBaseUri'])
-        }
-        else {
+        } else {
             $uri = [System.UriBuilder]('{0}/tickets' -f $PrivateData['FreshserviceBaseUri'])
         }
 
@@ -764,8 +763,7 @@ function Get-FreshServiceTicket {
         if ($Id) {
             $uri.Path = "{0}/{1}" -f $uri.Path, $Id
             $enablePagination = $false
-        }
-        elseif ($filter) {
+        } elseif ($filter) {
             $uri.Path = "{0}/filter" -f $uri.Path
             $qry.Add('query', '"{0}"' -f $filter )
             # $qry.Add('query', $filter )
@@ -790,9 +788,9 @@ function Get-FreshServiceTicket {
         if ($Type) {
             #Type is case-sensitive, overwrite value with proper case.
             switch ($type) {
-                'Incident'        {$PSBoundParameters['Type'] = 'Incident'}
-                'Service Request' {$PSBoundParameters['Type'] = 'Service Request'}
-                'Alert'           {$PSBoundParameters['Type'] = 'Alert'}
+                'Incident' { $PSBoundParameters['Type'] = 'Incident' }
+                'Service Request' { $PSBoundParameters['Type'] = 'Service Request' }
+                'Alert' { $PSBoundParameters['Type'] = 'Alert' }
             }
 
             $qry.Add('type', '{0}' -f $PSBoundParameters['Type'])
@@ -805,11 +803,9 @@ function Get-FreshServiceTicket {
         #Only one option can be passed with id. Parameterset was breaking, so parse at runtime.
         if ($include) {
             $qry.Add('include', $include.ToLower() -join ',')
-        }
-        elseif ($activities) {
+        } elseif ($activities) {
             $uri.Path = "{0}/activities" -f $uri.Path
-        }
-        elseif ($csat_response) {
+        } elseif ($csat_response) {
             $uri.Path = "{0}/csat_response" -f $uri.Path
         }
 
@@ -844,13 +840,13 @@ function Get-FreshServiceTicket {
 
                 if ($result.Content) {
                     $content = $result.Content |
-                                    ConvertFrom-Json
+                        ConvertFrom-Json
 
                     #API returns singluar or plural property based on the number of records, parse to get property returned.
                     #When using Filter, the API also returns a Total property, so we are filtering here to only return ticket or tickets property
                     $objProperty = $content[0].PSObject.Properties |
-                                        Where-Object -FilterScript {$_.Name -ne 'total'} |
-                                            Select-Object -ExpandProperty Name
+                        Where-Object -FilterScript { $_.Name -ne 'total' } |
+                        Select-Object -ExpandProperty Name
 
                     Write-Verbose -Message ("Returning {0} property with count {1}" -f $objProperty, $content."$($objProperty)".Count)
                     $content."$($objProperty)"
@@ -870,16 +866,14 @@ function Get-FreshServiceTicket {
                     $uriFinal = $uri.Uri.AbsoluteUri
                     #Update loop condition based on return results
                     $loopCondition = $content."$($objProperty)".Count -eq 0
-                }
-                elseif ($result.Headers.Link) {
-                    $uriFinal = [regex]::Matches($result.Headers.Link,'<(?<Uri>.*)>')[0].Groups['Uri'].Value
+                } elseif ($result.Headers.Link) {
+                    $uriFinal = [regex]::Matches($result.Headers.Link, '<(?<Uri>.*)>')[0].Groups['Uri'].Value
                     Write-Verbose ('Automatic pagination enabled with next link {0}' -f $uri)
                 }
             }
             until ($loopCondition)
 
-        }
-        catch {
+        } catch {
             Throw $_
         }
 
