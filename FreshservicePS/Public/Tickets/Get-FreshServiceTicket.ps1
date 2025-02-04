@@ -620,7 +620,7 @@ function Get-FreshServiceTicket {
         [Parameter(Mandatory = $true, HelpMessage = 'Unique id of the ticket', ParameterSetName = 'id', Position = 0)][long]$id,
         [Parameter(Mandatory = $false, HelpMessage = 'Workspace id is applicable only for accounts with Workspaces feature enabled. The value 0 for workspace_id will return tickets from all workspaces, with only global level fields.', ParameterSetName = 'default', Position = 0)][int[]]$workspace_id,
         [Parameter(Mandatory = $false, HelpMessage = 'Filter results for Ticket.', ParameterSetName = 'filter', Position = 0)][string]$filter,
-        [Parameter(Mandatory = $false, HelpMessage = ' By default only tickets that have been created within the past 30 days will be returned. For older tickets, use the updated_since filter.', ParameterSetName = 'default', Position = 1)][Alias('UpdateSince')][datetime]$updated_since,
+        [Parameter(Mandatory = $false, HelpMessage = 'By default only tickets that have been created within the past 30 days will be returned. For older tickets, use the updated_since filter.', ParameterSetName = 'default', Position = 1)][Alias('UpdateSince')][datetime]$updated_since,
         [Parameter(Mandatory = $false, HelpMessage = 'Use include to embed additional details in the response. Each include will consume an additional credit. For example if you embed the requester and company information you will be charged a total of 3 API credits for the call.', ParameterSetName = 'id', Position = 1)][ValidateSet('tags', 'conversations', 'requester', 'stats', 'problem', 'assets', 'change', 'related_tickets', 'requested_for', 'department', 'feedback', 'offboarding_context', 'onboarding_context')][string[]]$include,
         [Parameter(Mandatory = $false, HelpMessage = 'Use include to embed additional details in the response. Each include will consume an additional credit. For example if you embed the requester and company information you will be charged a total of 3 API credits for the call.', ParameterSetName = 'default', Position = 2)][ValidateSet('requester', 'stats', 'tags', 'requested_for', 'department')][string[]]$include_global,
         [Parameter(Mandatory = $false, HelpMessage = 'Predefined filters for Ticket', ParameterSetName = 'default', Position = 3)][ValidateSet('new_and_my_open', 'watching', 'spam', 'deleted')][string]$predefined_filter,
@@ -644,7 +644,7 @@ function Get-FreshServiceTicket {
         }
 
         $ticketFieldsURI = $([System.UriBuilder]('{0}/ticket_form_fields' -f $PrivateData['FreshserviceBaseUri']))
-        $ticketFieldsQuery = Invoke-FreshworksRestMethod -Method Get -Uri $ticketFieldsURI.Uri.AbsoluteUri
+        $ticketFieldsQuery = Invoke-FreshworksRestMethod -Method Get -Uri $ticketFieldsURI.Uri.AbsoluteUri -AuthorizationToken $PrivateData['FreshserviceApiToken']
         $ticketfields = $ticketFieldsQuery.Content | ConvertFrom-Json | Select-Object -ExpandProperty ticket_fields
 
         $qry = [System.Web.HttpUtility]::ParseQueryString([String]::Empty)
@@ -742,7 +742,7 @@ function Get-FreshServiceTicket {
                     Write-Verbose -Message ("Returning {0} property with count {1}" -f $objPropertyName, $content."$($objPropertyName)".Count)
                     [array]$records = $content | Select-Object -ExpandProperty $objPropertyName
 
-                    $returnedproperties = $content."$($objPropertyName)".psobject.properties
+                    $returnedproperties = $records[0].psobject.properties
                     $lookupFields = $returnedproperties | Where-Object { $_.TypeNameOfValue -Like 'System.Int*' -and $_.Name -NE 'approval_status' -and $_.Name -NE 'id' }
                     if ("onboarding_context" -in $include) {
                         $OnboardingLookupFields = $content."$($objPropertyName)".onboarding_context.lookup_values
