@@ -128,7 +128,10 @@ function Invoke-FreshworksRestMethod {
         $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
         $PrivateData = $MyInvocation.MyCommand.Module.PrivateData
 
-        if ( $MyInvocation.MyCommand.Module.PrivateData['FreshserviceApiToken'] ) {
+        # Set the AuthToken variable to PrivateData if not provided as a parameter
+        if ([string]::IsNullOrEmpty($AuthorizationToken)) { $AuthorizationToken = $PrivateData.FreshserviceApiToken }
+
+        if ($AuthorizationToken) {
             Write-Verbose 'Appending Authorization header'
             if (!$Headers) { $Headers = @{} }
             # if ($Headers) {
