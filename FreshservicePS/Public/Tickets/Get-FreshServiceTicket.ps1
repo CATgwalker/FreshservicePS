@@ -617,130 +617,23 @@
 function Get-FreshServiceTicket {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     param (
-        [Parameter(
-            Mandatory = $true,
-            HelpMessage = 'Unique id of the ticket',
-            ParameterSetName = 'id',
-            Position = 0
-        )]
-        [long]$id,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Workspace id is applicable only for accounts with Workspaces feature enabled. The value 0 for workspace_id will return tickets from all workspaces, with only global level fields.',
-            ParameterSetName = 'default',
-            Position = 0
-        )]
-        [int[]]$workspace_id,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Filter results for Ticket.',
-            ParameterSetName = 'filter',
-            Position = 0
-        )]
-        [string]$filter,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = ' By default only tickets that have been created within the past 30 days will be returned. For older tickets, use the updated_since filter.',
-            ParameterSetName = 'default',
-            Position = 1
-        )]
-        [Alias('UpdateSince')]
-        [datetime]$updated_since,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Use include to embed additional details in the response. Each include will consume an additional credit. For example if you embed the requester and company information you will be charged a total of 3 API credits for the call.',
-            ParameterSetName = 'id',
-            Position = 1
-        )]
-        [ValidateSet('tags', 'conversations', 'requester', 'stats', 'problem', 'assets', 'change', 'related_tickets', 'requested_for', 'department', 'feedback', 'offboarding_context', 'onboarding_context')]
-        [string[]]$include,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Use include to embed additional details in the response. Each include will consume an additional credit. For example if you embed the requester and company information you will be charged a total of 3 API credits for the call.',
-            ParameterSetName = 'default',
-            Position = 2
-        )]
-        [ValidateSet('requester', 'stats', 'tags', 'requested_for', 'department')]
-        [string[]]$include_global,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Predefined filters for Ticket',
-            ParameterSetName = 'default',
-            Position = 3
-        )]
-        [ValidateSet('new_and_my_open', 'watching', 'spam', 'deleted')]
-        [string]$predefined_filter,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Unique id of the requester',
-            ParameterSetName = 'default',
-            Position = 4
-        )]
-        [Alias('RequesterId')]
-        [long]$requester_id,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Email of the requester',
-            ParameterSetName = 'default',
-            Position = 5
-        )]
-        [string]$email,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Type of Ticket. Service Request or Incident',
-            ParameterSetName = 'default',
-            Position = 6
-        )]
-        [ValidateSet('Service Request', 'Incident', 'Alert')]
-        [string[]]$type,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Return Ticket Activities',
-            ParameterSetName = 'id',
-            Position = 2
-        )]
-        [switch]$activities,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Allows you to view all the built-in and custom fields for Tickets in your Freshservice account.',
-            ParameterSetName = 'fields',
-            Position = 0
-        )]
-        [Alias('Form')]
-        [switch]$fields,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Retrieve a csat response of a Ticket with the given ID from Freshservice.',
-            ParameterSetName = 'id',
-            Position = 1
-        )]
-        [switch]$csat_response,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Number of records per page returned during pagination.  Default is 30. Max is 100.',
-            ParameterSetName = 'default',
-            Position = 7
-        )]
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Number of records per page returned during pagination.  Default is 30. Max is 100.',
-            ParameterSetName = 'filter',
-            Position = 1
-        )]
-        [int]$per_page = 100,
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Page number to begin record return.',
-            ParameterSetName = 'default',
-            Position = 8
-        )]
-        [Parameter(
-            Mandatory = $false,
-            HelpMessage = 'Page number to begin record return.',
-            ParameterSetName = 'filter',
-            Position = 2
-        )]
-        [int]$page = 1
+        [Parameter(Mandatory = $true, HelpMessage = 'Unique id of the ticket', ParameterSetName = 'id', Position = 0)][long]$id,
+        [Parameter(Mandatory = $false, HelpMessage = 'Workspace id is applicable only for accounts with Workspaces feature enabled. The value 0 for workspace_id will return tickets from all workspaces, with only global level fields.', ParameterSetName = 'default', Position = 0)][int[]]$workspace_id,
+        [Parameter(Mandatory = $false, HelpMessage = 'Filter results for Ticket.', ParameterSetName = 'filter', Position = 0)][string]$filter,
+        [Parameter(Mandatory = $false, HelpMessage = ' By default only tickets that have been created within the past 30 days will be returned. For older tickets, use the updated_since filter.', ParameterSetName = 'default', Position = 1)][Alias('UpdateSince')][datetime]$updated_since,
+        [Parameter(Mandatory = $false, HelpMessage = 'Use include to embed additional details in the response. Each include will consume an additional credit. For example if you embed the requester and company information you will be charged a total of 3 API credits for the call.', ParameterSetName = 'id', Position = 1)][ValidateSet('tags', 'conversations', 'requester', 'stats', 'problem', 'assets', 'change', 'related_tickets', 'requested_for', 'department', 'feedback', 'offboarding_context', 'onboarding_context')][string[]]$include,
+        [Parameter(Mandatory = $false, HelpMessage = 'Use include to embed additional details in the response. Each include will consume an additional credit. For example if you embed the requester and company information you will be charged a total of 3 API credits for the call.', ParameterSetName = 'default', Position = 2)][ValidateSet('requester', 'stats', 'tags', 'requested_for', 'department')][string[]]$include_global,
+        [Parameter(Mandatory = $false, HelpMessage = 'Predefined filters for Ticket', ParameterSetName = 'default', Position = 3)][ValidateSet('new_and_my_open', 'watching', 'spam', 'deleted')][string]$predefined_filter,
+        [Parameter(Mandatory = $false, HelpMessage = 'Unique id of the requester', ParameterSetName = 'default', Position = 4)][Alias('RequesterId')][long]$requester_id,
+        [Parameter(Mandatory = $false, HelpMessage = 'Email of the requester', ParameterSetName = 'default', Position = 5)][string]$email,
+        [Parameter(Mandatory = $false, HelpMessage = 'Type of Ticket. Service Request or Incident', ParameterSetName = 'default', Position = 6)][ValidateSet('Service Request', 'Incident', 'Alert')][string[]]$type,
+        [Parameter(Mandatory = $false, HelpMessage = 'Return Ticket Activities', ParameterSetName = 'id', Position = 2)][switch]$activities,
+        [Parameter(Mandatory = $false, HelpMessage = 'Allows you to view all the built-in and custom fields for Tickets in your Freshservice account.', ParameterSetName = 'fields', Position = 0)][Alias('Form')][switch]$fields,
+        [Parameter(Mandatory = $false, HelpMessage = 'Retrieve a csat response of a Ticket with the given ID from Freshservice.', ParameterSetName = 'id', Position = 1)][switch]$csat_response,
+        [Parameter(Mandatory = $false, HelpMessage = 'Number of records per page returned during pagination.  Default is 30. Max is 100.', ParameterSetName = 'default', Position = 7)]
+        [Parameter(Mandatory = $false, HelpMessage = 'Number of records per page returned during pagination.  Default is 30. Max is 100.', ParameterSetName = 'filter', Position = 1)][int]$per_page = 100,
+        [Parameter(Mandatory = $false, HelpMessage = 'Page number to begin record return.', ParameterSetName = 'default', Position = 8)]
+        [Parameter(Mandatory = $false, HelpMessage = 'Page number to begin record return.', ParameterSetName = 'filter', Position = 2)][int]$page = 1
     )
     begin {
 
@@ -749,6 +642,10 @@ function Get-FreshServiceTicket {
         if (!$PrivateData.FreshserviceBaseUri) {
             throw "No connection found!  Setup a new Freshservice connection with New-FreshServiceConnection and then Connect-FreshService. Set a default connection with New-FreshServiceConnection or Set-FreshConnection to automatically connect when importing the module."
         }
+
+        $ticketFieldsURI = $([System.UriBuilder]('{0}/ticket_form_fields' -f $PrivateData['FreshserviceBaseUri']))
+        $ticketFieldsQuery = Invoke-FreshworksRestMethod -Method Get -Uri $ticketFieldsURI.Uri.AbsoluteUri
+        $ticketfields = $ticketFieldsQuery.Content | ConvertFrom-Json | Select-Object -ExpandProperty ticket_fields
 
         $qry = [System.Web.HttpUtility]::ParseQueryString([String]::Empty)
 
@@ -816,7 +713,6 @@ function Get-FreshServiceTicket {
 
     }
     process {
-
         try {
 
             if ($enablePagination) {
@@ -825,31 +721,83 @@ function Get-FreshServiceTicket {
             }
 
             $uri.Query = $qry.ToString()
-
             $uriFinal = $uri.Uri.AbsoluteUri
-
             $results = do {
 
                 $params = @{
-                    Uri         = $uriFinal
-                    Method      = 'GET'
-                    ErrorAction = 'Stop'
+                    Uri                = $uriFinal
+                    Method             = 'GET'
+                    ErrorAction        = 'Stop'
+                    AuthorizationToken = $PrivateData.FreshserviceApiToken
                 }
 
                 $result = Invoke-FreshworksRestMethod @params
 
                 if ($result.Content) {
-                    $content = $result.Content |
-                        ConvertFrom-Json
+                    $content = $result.Content | ConvertFrom-Json
 
                     #API returns singluar or plural property based on the number of records, parse to get property returned.
                     #When using Filter, the API also returns a Total property, so we are filtering here to only return ticket or tickets property
-                    $objProperty = $content[0].PSObject.Properties |
-                        Where-Object -FilterScript { $_.Name -ne 'total' } |
-                        Select-Object -ExpandProperty Name
+                    $objPropertyName = $content[0].PSObject.Properties | Where-Object -FilterScript { $_.Name -ne 'total' } | Select-Object -ExpandProperty Name
+                    Write-Verbose -Message ("Returning {0} property with count {1}" -f $objPropertyName, $content."$($objPropertyName)".Count)
+                    [array]$records = $content | Select-Object -ExpandProperty $objPropertyName
 
-                    Write-Verbose -Message ("Returning {0} property with count {1}" -f $objProperty, $content."$($objProperty)".Count)
-                    $content."$($objProperty)"
+                    $returnedproperties = $content."$($objPropertyName)".psobject.properties
+                    $lookupFields = $returnedproperties | Where-Object { $_.TypeNameOfValue -Like 'System.Int*' -and $_.Name -NE 'approval_status' -and $_.Name -NE 'id' }
+                    if ("onboarding_context" -in $include) {
+                        $OnboardingLookupFields = $content."$($objPropertyName)".onboarding_context.lookup_values
+                    }
+                    if ("offboarding_context" -in $include) {
+                        $OffboardingLookupFields = $content."$($objPropertyName)".offboarding_context.lookup_values
+                    }
+
+                    foreach ($record in $records) {
+                        if ($lookupFields) {
+                            foreach ($Property in $lookupFields.name) {
+                                if (-not [string]::IsNullOrEmpty($record.$Property)) {
+                                    try {
+                                        #get the value from ticketfields Choices
+                                        $PossibleValues = $ticketfields | Where-Object Name -EQ $($property -replace '_id', '')
+                                        $PropertyValue = $PossibleValues.choices | Where-Object id -EQ $record.$Property
+                                        $record.$Property = $PropertyValue
+                                    } catch {
+                                        # If the lookup field fails keep the property as is (Do nothing)
+                                        $null = 'Silencing a PSSA alert with this line'
+                                    }
+                                }
+                            }
+                        }
+                        if ($OnboardingLookupFields) {
+                            foreach ($Property in $OnboardingLookupFields.psobject.properties.name) {
+                                if (-not [string]::IsNullOrEmpty($record.onboarding_context.fields.$Property)) {
+                                    try {
+                                        #get the value from OffboardingLookupFields Choices
+                                        $PropertyValue = $OffboardingLookupFields.$Property
+                                        $record.onboarding_context.fields.$Property = $PropertyValue
+                                    } catch {
+                                        # If the lookup field fails keep the property as is (Do nothing)
+                                        $null = 'Silencing a PSSA alert with this line'
+                                    }
+                                }
+                            }
+                        }
+                        if ($OffboardingLookupFields) {
+                            foreach ($Property in $OffboardingLookupFields.psobject.properties.name) {
+                                if (-not [string]::IsNullOrEmpty($record.offboarding_context.fields.$Property)) {
+                                    try {
+                                        #get the value from OffboardingLookupFields Choices
+                                        $PropertyValue = $OffboardingLookupFields.$Property
+                                        $record.offboarding_context.fields.$Property = $PropertyValue
+                                    } catch {
+                                        # If the lookup field fails keep the property as is (Do nothing)
+                                        $null = 'Silencing a PSSA alert with this line'
+                                    }
+                                }
+                            }
+                        }
+                        # Output record for collection into calling $results
+                        $record
+                    }
                 }
 
                 #Default loop condition - link exists indicates another page for pagination
@@ -877,8 +825,7 @@ function Get-FreshServiceTicket {
             Throw $_
         }
 
-    }
-    end {
+    } end {
 
         $results
 
