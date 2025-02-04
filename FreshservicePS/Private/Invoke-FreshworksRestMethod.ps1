@@ -42,87 +42,18 @@ function Invoke-FreshworksRestMethod {
     #>
 
     param (
-        [Parameter(Mandatory = $False,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'Api Token for authenication with Freshworks REST API',
-            ParameterSetName = 'default',
-            Position = 0
-        )]
-        [Parameter(Mandatory = $False,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'Api Token for authenication with Freshworks REST API',
-            ParameterSetName = 'Form',
-            Position = 0
-        )]
-        [string]$AuthorizationToken = $MyInvocation.MyCommand.Module.PrivateData['FreshserviceApiToken'],
-        [Parameter(Mandatory = $False,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'REST API Headers',
-            ParameterSetName = 'default',
-            Position = 1
-        )]
-        [Parameter(Mandatory = $False,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'REST API Headers',
-            ParameterSetName = 'Form',
-            Position = 1
-        )]
-        [hashtable]$Headers,
-        [Parameter(Mandatory = $True,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'REST API Uri that is being requested',
-            ParameterSetName = 'default',
-            Position = 2
-        )]
-        [Parameter(Mandatory = $True,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'REST API Uri that is being requested',
-            ParameterSetName = 'Form',
-            Position = 2
-        )]
-        [string]$Uri,
-        [Parameter(Mandatory = $True,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'REST Method being called',
-            ParameterSetName = 'default',
-            Position = 3
-        )]
-        [Parameter(Mandatory = $True,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'REST Method being called',
-            ParameterSetName = 'Form',
-            Position = 3
-        )]
-        [ValidateSet('DELETE', 'GET', 'PUT', 'POST', 'PATCH')]
-        [string]$Method,
-        [Parameter(Mandatory = $False,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'Message body',
-            ParameterSetName = 'default',
-            Position = 4
-        )]
-        $Body,
-        [Parameter(Mandatory = $False,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'ContentType of passed Body for REST header',
-            ParameterSetName = 'default',
-            Position = 5
-        )]
-        [Parameter(Mandatory = $False,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'ContentType of passed Body for REST header',
-            ParameterSetName = 'Form',
-            Position = 5
-        )]
-        [string]$ContentType = 'application/json; charset=utf-8',
-        [Parameter(Mandatory = $False,
-            ValueFromPipelineByPropertyName = $True,
-            HelpMessage = 'Converts a dictionary to a multipart/form-data submission. Form may not be used with Body. If ContentType is used, it is ignored.',
-            ParameterSetName = 'Form',
-            Position = 6
-        )]
-        [Collections.IDictionary]$Form
-
+        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'Api Token for authenication with Freshworks REST API', ParameterSetName = 'default', Position = 0)]
+        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'Api Token for authenication with Freshworks REST API', ParameterSetName = 'Form', Position = 0)][string]$AuthorizationToken = $MyInvocation.MyCommand.Module.PrivateData['FreshserviceApiToken'],
+        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'REST API Headers', ParameterSetName = 'default', Position = 1)]
+        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'REST API Headers', ParameterSetName = 'Form', Position = 1)][hashtable]$Headers,
+        [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True, HelpMessage = 'REST API Uri that is being requested', ParameterSetName = 'default', Position = 2)]
+        [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True, HelpMessage = 'REST API Uri that is being requested', ParameterSetName = 'Form', Position = 2)][string]$Uri,
+        [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True, HelpMessage = 'REST Method being called', ParameterSetName = 'default', Position = 3)]
+        [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True, HelpMessage = 'REST Method being called', ParameterSetName = 'Form', Position = 3)][ValidateSet('DELETE', 'GET', 'PUT', 'POST', 'PATCH')][string]$Method,
+        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'Message body', ParameterSetName = 'default', Position = 4)]$Body,
+        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'ContentType of passed Body for REST header', ParameterSetName = 'default', Position = 5)]
+        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'ContentType of passed Body for REST header', ParameterSetName = 'Form', Position = 5)][string]$ContentType = 'application/json; charset=utf-8',
+        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'Converts a dictionary to a multipart/form-data submission. Form may not be used with Body. If ContentType is used, it is ignored.', ParameterSetName = 'Form', Position = 6)][Collections.IDictionary]$Form
     )
     begin {
         $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -146,12 +77,12 @@ function Invoke-FreshworksRestMethod {
             break
         }
 
-    } #begin
+    }
     process {
         Write-Verbose -Message ('{0} - Initiating REST API call to {1} with API key:  {2}' -f $MyInvocation.MyCommand.Name, $Uri, $AuthorizationToken)
 
         $restParams = @{
-            Uri             = $uriFinal
+            Uri             = $uri
             Method          = $Method
             Headers         = $Headers
             UseBasicParsing = $true #Backwards compatibility for versions before PS 6.0. Github Issue #5
@@ -242,9 +173,32 @@ function Invoke-FreshworksRestMethod {
             }
 
         }
-    } #process
+
+        switch ($Method) {
+            'Delete' {
+                if ( $results.StatusCode -ne 204 ) {
+                    throw ('"{0} : {1}' -f $results.StatusCode, $results | Out-String )
+                }
+            }
+            Default {
+                # TODO: this could use some work
+                # checking for content is good, but at times we'll get content that's not valid
+                # eg. html content when a dev instance is hibernating
+                if ($results.Content) {
+                    $content = $results.content | ConvertFrom-Json
+                    #API returns singluar or plural property based on the number of records, parse to get property returned.
+                    $objProperty = $content[0].PSObject.Properties | Where-Object -FilterScript { $_.Name -ne 'total' } | Select-Object -ExpandProperty Name
+                    Write-Verbose -Message ("Returning {0} property with count {1}" -f $objProperty, $content."$($objProperty)".Count)
+                } else {
+                    # invoke-webrequest didn't throw an error per se, but we didn't get content back either
+                    throw ('"{0} : {1}' -f $response.StatusCode, $response | Out-String )
+                }
+            }
+        }
+
+    }
     end {
         Write-Verbose -Message ('{0} - Completed REST {1} Method on {2} in {3:c}.' -f $MyInvocation.MyCommand.Name, $Method, $uri, $stopwatch.Elapsed)
         $results
-    } #end
-} #Invoke-FreshworksRestMethod
+    }
+}
