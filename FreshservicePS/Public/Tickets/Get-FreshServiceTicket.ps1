@@ -709,10 +709,7 @@ function Get-FreshServiceTicket {
         if ($include_global) {
             $qry.Add('include', $include_global.ToLower() -join ',')
         }
-
-
-    }
-    process {
+    } process {
         try {
 
             if ($enablePagination) {
@@ -825,10 +822,7 @@ function Get-FreshServiceTicket {
         } catch {
             Throw $_
         }
-
     } end {
-
         $results
-
     }
 }
