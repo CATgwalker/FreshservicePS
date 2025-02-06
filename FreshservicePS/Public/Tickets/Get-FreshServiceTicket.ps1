@@ -742,15 +742,16 @@ function Get-FreshServiceTicket {
                     Write-Verbose -Message ("Returning {0} property with count {1}" -f $objPropertyName, $content."$($objPropertyName)".Count)
                     [array]$records = $content | Select-Object -ExpandProperty $objPropertyName
 
-                    $returnedproperties = $records[0].psobject.properties
-                    $lookupFields = $returnedproperties | Where-Object { $_.TypeNameOfValue -Like 'System.Int*' -and $_.Name -NE 'approval_status' -and $_.Name -NE 'id' }
-                    if ("onboarding_context" -in $include) {
-                        $OnboardingLookupFields = $content."$($objPropertyName)".onboarding_context.lookup_values
+                    if ($records) {
+                        $returnedproperties = $records[0].psobject.properties
+                        $lookupFields = $returnedproperties | Where-Object { $_.TypeNameOfValue -Like 'System.Int*' -and $_.Name -NE 'approval_status' -and $_.Name -NE 'id' }
+                        if ("onboarding_context" -in $include) {
+                            $OnboardingLookupFields = $content."$($objPropertyName)".onboarding_context.lookup_values
+                        }
+                        if ("offboarding_context" -in $include) {
+                            $OffboardingLookupFields = $content."$($objPropertyName)".offboarding_context.lookup_values
+                        }
                     }
-                    if ("offboarding_context" -in $include) {
-                        $OffboardingLookupFields = $content."$($objPropertyName)".offboarding_context.lookup_values
-                    }
-
                     foreach ($record in $records) {
                         if ($lookupFields) {
                             foreach ($Property in $lookupFields.name) {
