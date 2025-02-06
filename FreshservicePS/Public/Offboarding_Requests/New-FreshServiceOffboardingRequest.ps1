@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-    Creates Freshservice Onboarding Request and returns the parent ticket id.
+    Creates Freshservice Offboarding Request and returns the parent ticket id.
 
 .DESCRIPTION
-    Creates Freshservice Onboarding Request via REST API.
-    https://api.freshservice.com/#create_onboarding_request
+    Creates Freshservice Offboarding Request via REST API.
+    https://api.freshservice.com/#create_offboarding_request
 
 .PARAMETER EmployeeType
     String value of the Employee Type.
@@ -15,7 +15,7 @@
 .PARAMETER StartDate
     Datetime value of the Start Date
 .PARAMETER OtherValues
-    Hashtable containing any additional Onboarding Request custom fields.
+    Hashtable containing any additional Offboarding Request custom fields.
 
 .EXAMPLE
     $otherValues = @{
@@ -24,24 +24,24 @@
         cf_product_code         = "1001"
     }
 
-    New-FreshServiceOnboardingRequest -FirstName $FirstName -LastName $LastName -EmployeeType $EmployeeType -StartDate -otherValues $OtherValues
+    New-FreshServiceOffboardingRequest -FirstName $FirstName -LastName $LastName -EmployeeType $EmployeeType -StartDate -otherValues $OtherValues
 
     id            : 9
     created_at    : 2025-02-06T22:04:05Z
     updated_at    : 2025-02-06T22:04:05Z
     status        : 1
     requester_id  : 20002716282
-    subject       : Employee Onboarding Request
+    subject       : Employee Offboarding Request
     ticket_id     :
     actors        : @{HR Manager=}
     fields        : @{cf_employee_type=Employee; cf_first_name=TestFirstname; cf_new_hire_first_and_last_name=TestLastName; cf_date_of_joining=06-02-2025; cf_job_title=Test Job Title; cf_department_code=100; cf_product_code=1001;}
     lookup_values :
 
-    Create a new Freshservice Onboarding Request.
+    Create a new Freshservice Offboarding Request.
 .NOTES
     This module was developed and tested with Freshservice REST API v2.
 #>
-function New-FreshServiceOnboardingRequest {
+function New-FreshServiceOffboardingRequest {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     param (
         [Parameter(Mandatory = $true)][string]$EmployeeType,
@@ -55,7 +55,7 @@ function New-FreshServiceOnboardingRequest {
         throw "No connection found!  Setup a new Freshservice connection with New-FreshServiceConnection and then Connect-FreshService. Set a default connection with New-FreshServiceConnection or Set-FreshConnection to automatically connect when importing the module."
     }
 
-    $uri = [System.UriBuilder]('{0}/onboarding_requests' -f $PrivateData['FreshserviceBaseUri'])
+    $uri = [System.UriBuilder]('{0}/offboarding_requests' -f $PrivateData['FreshserviceBaseUri'])
     $requestBody = @{
         fields = @{
             cf_employee_type                = $EmployeeType
@@ -86,9 +86,9 @@ function New-FreshServiceOnboardingRequest {
                 $objProperty = $content[0].PSObject.Properties.Name
                 Write-Verbose -Message ("Returning {0} property with count {1}" -f $objProperty, $content."$($objProperty)".Count)
                 $OnboardRequest = $content."$($objProperty)"
-                Write-Verbose -Message ("Created Onboarding Request with ID {0}" -f $OnboardRequest.id)
-                Write-Verbose -Message ("Getting Onboarding Request {0} Parent Ticket" -f $OnboardRequest.id)
-                $ParentTicket = get-freshserviceonboardingrequest -id $OnboardRequest.id -tickets -ErrorAction Stop
+                Write-Verbose -Message ("Created Offboarding Request with ID {0}" -f $OnboardRequest.id)
+                Write-Verbose -Message ("Getting Offboarding Request {0} Parent Ticket" -f $OnboardRequest.id)
+                $ParentTicket = get-freshserviceoffboardingrequest -id $OnboardRequest.id -tickets -ErrorAction Stop
                 $ParentTicket = $ParentTicket | Where-Object parent -EQ $true
                 Write-Verbose -Message ("Found Parent Ticket {0}" -f $ParentTicket.id)
                 $ParentTicket.id
