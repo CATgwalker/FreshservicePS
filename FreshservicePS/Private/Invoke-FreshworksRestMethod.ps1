@@ -43,7 +43,7 @@ function Invoke-FreshworksRestMethod {
 
     param (
         [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'Api Token for authenication with Freshworks REST API', ParameterSetName = 'default', Position = 0)]
-        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'Api Token for authenication with Freshworks REST API', ParameterSetName = 'Form', Position = 0)][string]$AuthorizationToken = $MyInvocation.MyCommand.Module.PrivateData['FreshserviceApiToken'],
+        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'Api Token for authenication with Freshworks REST API', ParameterSetName = 'Form', Position = 0)][string]$AuthorizationToken,
         [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'REST API Headers', ParameterSetName = 'default', Position = 1)]
         [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, HelpMessage = 'REST API Headers', ParameterSetName = 'Form', Position = 1)][hashtable]$Headers,
         [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True, HelpMessage = 'REST API Uri that is being requested', ParameterSetName = 'default', Position = 2)]
