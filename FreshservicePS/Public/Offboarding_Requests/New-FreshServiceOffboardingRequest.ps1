@@ -6,10 +6,14 @@
     Creates Freshservice Offboarding Request via REST API.
     https://api.freshservice.com/#create_offboarding_request
 
+.PARAMETER EmployeeName
+    String value of the Employee Name for populating in the resulting Offboarding Request title & Preferred Name fiel.
 .PARAMETER EmployeeEmail
     String value of the Employee Email address.
 .PARAMETER ManagerEmail
     String value of the Manager Email address.
+.PARAMETER LastWorkingDate
+    Datetime value of the last working date & time for the offboard. Will be converted to UTC.
 .PARAMETER OtherValues
     Hashtable containing any additional Offboarding Request custom fields.
 
@@ -40,8 +44,10 @@
 function New-FreshServiceOffboardingRequest {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     param (
+        [Parameter(Mandatory = $true)][string]$EmployeeName,
         [Parameter(Mandatory = $true)][string]$EmployeeEmail,
         [Parameter(Mandatory = $true)][string]$ManagerEmail,
+        [Parameter(Mandatory = $true)][datetime]$LastWorkingDate,
         [Parameter(Mandatory = $false)][hashtable]$OtherValues
     )
     $PrivateData = $MyInvocation.MyCommand.Module.PrivateData
@@ -52,8 +58,11 @@ function New-FreshServiceOffboardingRequest {
     $uri = [System.UriBuilder]('{0}/offboarding_requests' -f $PrivateData['FreshserviceBaseUri'])
     $requestBody = @{
         fields = @{
-            cf_employee_email = $EmployeeEmail
-            cf_direct_manager = $ManagerEmail
+            cf_employee_name                                                = $EmployeeName
+            cf_employee_preferred_name                                      = $EmployeeName
+            cf_employee_email                                               = $EmployeeEmail
+            cf_direct_manager                                               = $ManagerEmail
+            cf_last_working_date_and_time_day_time_for_account_deactivation = $($($LastWorkingDate).ToUniversalTime().ToString('yyyy-MM-ddTH:mm:ssK'))
         }
     }
 
@@ -77,13 +86,22 @@ function New-FreshServiceOffboardingRequest {
                 #When using Filter, the API also returns a Total property, so we are filtering here to only return ticket or tickets property
                 $objProperty = $content[0].PSObject.Properties.Name
                 Write-Verbose -Message ("Returning {0} property with count {1}" -f $objProperty, $content."$($objProperty)".Count)
-                $offboardRequest = $content."$($objProperty)"
-                Write-Verbose -Message ("Created Offboarding Request with ID {0}" -f $offboardRequest.id)
-                Write-Verbose -Message ("Getting Offboarding Request {0} Parent Ticket" -f $offboardRequest.id)
-                $ParentTicket = Get-FreshServiceOffboardingRequest -id $offboardRequest.id -tickets -ErrorAction Stop
-                $ParentTicket = $ParentTicket | Where-Object parent -EQ $true
-                Write-Verbose -Message ("Found Parent Ticket {0}" -f $ParentTicket.id)
-                $ParentTicket.id
+                $OffboardRequest = $content."$($objProperty)"
+                Write-Verbose -Message ("Created Offboarding Request with ID {0}" -f $OffboardRequest.id)
+                Write-Verbose -Message ("Getting Offboarding Request {0} Parent Ticket" -f $OffboardRequest.id)
+                $timer = [system.Diagnostics.stopwatch]::StartNew()
+                do {
+                    Start-Sleep 1 #loop for 30 seconds here while we wait for FS to create any child tickets
+                    $OffboardingTickets = Get-FreshServiceOffboardingRequest -id $OffboardRequest.id -tickets -ErrorAction Stop
+                } while (!$OffboardingTickets -or $timer.Elapsed.Seconds -lt 30)
+
+                if ($OffboardingTickets) {
+                    $ParentTicket = $OffboardingTickets | Where-Object parent -EQ $true
+                    Write-Verbose -Message ("Found Parent Ticket {0}" -f $ParentTicket.id)
+                    $ParentTicket.id
+                } else {
+                    throw "Onboarding request $($OnboardRequest.id) created; Unable to retrieve parent ticket"
+                }
             }
         } catch {
             throw $_
