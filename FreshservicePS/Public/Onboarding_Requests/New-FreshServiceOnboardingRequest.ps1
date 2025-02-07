@@ -88,10 +88,19 @@ function New-FreshServiceOnboardingRequest {
                 $OnboardRequest = $content."$($objProperty)"
                 Write-Verbose -Message ("Created Onboarding Request with ID {0}" -f $OnboardRequest.id)
                 Write-Verbose -Message ("Getting Onboarding Request {0} Parent Ticket" -f $OnboardRequest.id)
-                $ParentTicket = get-freshserviceonboardingrequest -id $OnboardRequest.id -tickets -ErrorAction Stop
-                $ParentTicket = $ParentTicket | Where-Object parent -EQ $true
-                Write-Verbose -Message ("Found Parent Ticket {0}" -f $ParentTicket.id)
-                $ParentTicket.id
+                $timer = [system.Diagnostics.stopwatch]::StartNew()
+                do {
+                    Start-Sleep 1 #loop for 30 seconds here while we wait for FS to create any child tickets
+                    $OnboardingTickets = get-freshserviceonboardingrequest -id $OnboardRequest.id -tickets -ErrorAction Stop
+                } while (!$OnboardingTickets -or $timer.Elapsed.Seconds -lt 30)
+
+                if ($OnboardingTickets) {
+                    $ParentTicket = $OnboardingTickets | Where-Object parent -EQ $true
+                    Write-Verbose -Message ("Found Parent Ticket {0}" -f $ParentTicket.id)
+                    $ParentTicket.id
+                } else {
+                    throw "Onboarding request $($OnboardRequest.id) created; Unable to retrieve parent ticket"
+                }
             }
         } catch {
             throw $_
