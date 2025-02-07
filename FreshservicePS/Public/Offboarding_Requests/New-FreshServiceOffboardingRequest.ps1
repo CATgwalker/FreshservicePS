@@ -93,7 +93,7 @@ function New-FreshServiceOffboardingRequest {
                 do {
                     Start-Sleep 1 #loop for 30 seconds here while we wait for FS to create any child tickets
                     $OffboardingTickets = Get-FreshServiceOffboardingRequest -id $OffboardRequest.id -tickets -ErrorAction Stop
-                } while (!$OffboardingTickets -or $timer.Elapsed.Seconds -lt 30)
+                } while (!$OffboardingTickets -and $timer.Elapsed.Seconds -lt 30)
 
                 if ($OffboardingTickets) {
                     $ParentTicket = $OffboardingTickets | Where-Object parent -EQ $true
