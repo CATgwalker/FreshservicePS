@@ -140,7 +140,7 @@ function Get-FreshServiceSolutionFolder {
 
         $qry = [System.Web.HttpUtility]::ParseQueryString([String]::Empty)
         $uri = [System.UriBuilder]('{0}/solutions/folders' -f $PrivateData['FreshserviceBaseUri'])
-        $enablePagination = $false
+        $enablePagination = $true
 
     }
     process {
@@ -180,9 +180,22 @@ function Get-FreshServiceSolutionFolder {
                                     ConvertFrom-Json
 
                     #API returns singluar or plural property based on the number of records, parse to get property returned.
-                    $objProperty = $content[0].PSObject.Properties.Name
-                    Write-Verbose -Message ("Returning {0} property with count {1}" -f $objProperty, $content."$($objProperty)".Count)
-                    $content."$($objProperty)"
+                    if ($content -and $content.PSObject.Properties) {
+                        $objProperty = $content.PSObject.Properties | 
+                                        Where-Object -FilterScript {$_.Name -ne 'total'} |
+                                            Select-Object -First 1 -ExpandProperty Name
+                        
+                        if ($objProperty) {
+                            Write-Verbose -Message ("Returning {0} property with count {1}" -f $objProperty, $content."$($objProperty)".Count)
+                            $content."$($objProperty)"
+                        } else {
+                            Write-Verbose -Message "No valid property found in API response"
+                            $null
+                        }
+                    } else {
+                        Write-Verbose -Message "API response content is empty or has no properties"
+                        $null
+                    }
                 }
 
                 if ($result.Headers.Link) {
