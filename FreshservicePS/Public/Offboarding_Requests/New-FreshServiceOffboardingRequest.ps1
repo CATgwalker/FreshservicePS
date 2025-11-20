@@ -62,7 +62,7 @@ function New-FreshServiceOffboardingRequest {
             cf_employee_preferred_name                                      = $EmployeeName
             cf_employee_email                                               = $EmployeeEmail
             cf_direct_manager                                               = $ManagerEmail
-            cf_last_working_date_and_time_day_time_for_account_deactivation = $($($LastWorkingDate).ToUniversalTime().ToString('yyyy-MM-ddTH:mm:ssK'))
+            cf_last_working_date_and_time_day_time_for_account_deactivation = (Get-Date $LastWorkingDate).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssK')
         }
     }
 

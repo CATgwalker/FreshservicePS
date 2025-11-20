@@ -48,6 +48,7 @@ function New-FreshServiceOnboardingRequest {
         [Parameter(Mandatory = $true)][string]$FirstName,
         [Parameter(Mandatory = $true)][string]$LastName,
         [Parameter(Mandatory = $true)][string]$StartDate,
+        [Parameter(Mandatory = $false)][string]$RequesterId,
         [Parameter(Mandatory = $false)][hashtable]$OtherValues
     )
     $PrivateData = $MyInvocation.MyCommand.Module.PrivateData
@@ -66,6 +67,7 @@ function New-FreshServiceOnboardingRequest {
     }
 
     if ($OtherValues) { $OtherValues.GetEnumerator() | ForEach-Object { $requestBody.fields.Add($_.Key, $_.Value) } }
+    if ($RequesterId) { $requestBody.Add("requester_id", $RequesterId) }
     $requestBodyJSON = $requestBody | ConvertTo-Json -Depth 10
     if ($PSCmdlet.ShouldProcess($uri.Uri.AbsoluteUri)) {
         try {

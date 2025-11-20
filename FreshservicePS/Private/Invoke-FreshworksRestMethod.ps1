@@ -150,7 +150,12 @@ function Invoke-FreshworksRestMethod {
 
         } catch {
             $ex = $_
-            Write-Verbose -Message ("Catching exception {0} with status code {1}" -f $ex.Exception.GetType().FullName, $ex.Exception.Response.value__)
+            Write-Verbose -Message ("Catching exception {0} with status code {1}" -f $ex.Exception.GetType().FullName, $ex.Exception.Response.StatusCode.value__)
+            $errorResponse = $ex.Exception.Response.GetResponseStream()
+            $reader = New-Object System.IO.StreamReader($errorResponse)
+            $reader.BaseStream.Position = 0
+            $reader.DiscardBufferedData()
+            $jsonresponse = $Reader.readtoend() | ConvertFrom-Json
             switch ($ex.Exception.Response.StatusCode.value__) {
                 '429' {
                     [int]$sleepInSecs = $ex.Exception.Response.Headers.GetValues('Retry-After')[0]
@@ -164,7 +169,17 @@ function Invoke-FreshworksRestMethod {
                             Link = '<{0}>' -f $uri
                         }
                     }
-
+                }
+                '400' {
+                    Write-Verbose -Message ("Throwing Default exception of type {0}" -f $ex.Exception.GetType().FullName)
+                    for ($i = 0; $i -le $jsonresponse.Errors.Length - 1; $i++) {
+                        if ($i -eq $jsonresponse.Errors.Length - 1) {
+                            $ResponseString += $jsonresponse.description + ":" + $jsonresponse.errors[$i].field + " field - " + $jsonresponse.errors[$i].message
+                        } else {
+                            $ResponseString += $jsonresponse.description + ":" + $jsonresponse.errors[$i].field + " field - " + $jsonresponse.errors[$i].message + ";"
+                        }
+                    }
+                    Throw "$ex $($ResponseString)"
                 }
                 default {
                     Write-Verbose -Message ("Throwing Default exception of type {0}" -f $ex.Exception.GetType().FullName)
