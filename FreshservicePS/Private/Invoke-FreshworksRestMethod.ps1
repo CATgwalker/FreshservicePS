@@ -121,14 +121,16 @@ function Invoke-FreshworksRestMethod {
 
             $results = Invoke-WebRequest @restParams
             Write-Verbose -Message ('Returned status {0} with code {1}.' -f $results.StatusDescription, $results.StatusCode)
-            $rateTotal = $results.Headers['X-Ratelimit-Total'][0]
-            $rateRemaining = $results.Headers['X-Ratelimit-Remaining'][0]
+            [float]$rateTotal = $results.Headers['X-Ratelimit-Total'][0]
+            [float]$rateRemaining = $results.Headers['X-Ratelimit-Remaining'][0]
 
-            If ($rateTotal -gt 0 -and $rateRemaining -gt 0) {
-                $pctRateUsed = [math]::Round(($rateTotal - $rateRemaining) / $rateTotal * 100, 2)
+            if ($rateTotal -gt 0 -and $rateRemaining -gt 0) {
+                $pctRateUsed = (1 - [math]::Round($rateRemaining / $rateTotal, 2)) * 100
+                # $pctRateUsed = [math]::Round(($rateTotal - $rateRemaining) / $rateTotal * 100, 2)
                 Write-Verbose -Message ('Current FreshService minute rate limit is {0} with {1} calls remaining ({2}% used) .' -f $rateTotal, $rateRemaining, $pctRateUsed)
 
                 if ($PrivateData.FreshserviceThrottling -eq $true) {
+                    Write-Verbose -Message "FreshServiceThrottling is $($true)."
                     # The API rate limit is applied on an account wide basis irrespective of factors such as
                     # the number of agents or IP addresses used to make the calls.  There are numerous API calls that can consume multiple API calls
                     # for single get operations (e.g. Get-FSAsset -IncludeTypeFields = 3 API credits for each call). Throttling will slow
@@ -137,13 +139,14 @@ function Invoke-FreshworksRestMethod {
 
                     if ($pctRateUsed -ge 70.00) {
                         switch ($pctRateUsed) {
-                            { $PSItem -ge 70.00 } { $sleepInSecs = 5 }
-                            { $PSItem -ge 80.00 } { $sleepInSecs = 15 }
-                            { $PSItem -ge 90.00 } { $sleepInSecs = 30 }
+                            { $PSItem -ge 70.00 } { $sleepInSecs = 5; }
+                            { $PSItem -ge 80.00 } { $sleepInSecs = 15; }
+                            { $PSItem -ge 90.00 } { $sleepInSecs = 30; }
                         }
 
                         Write-Warning -Message ('Executing {0}. FreshService API minute rate limit above 70% threshold with {1} total calls available and {2} calls remaining ({3}% used). Artificially slowing calls by {4} second. See Connect-Freshservice for options.' -f $uri, $rateTotal, $rateRemaining, $pctRateUsed, $sleepInSecs)
                         Start-Sleep -Seconds $sleepInSecs
+                        $results = Invoke-WebRequest @restParams
                     }
                 }
             }
@@ -162,12 +165,14 @@ function Invoke-FreshworksRestMethod {
                     Write-Warning -Message ('API rate limit reached. Automatically sleeping for {0} seconds.' -f $sleepInSecs)
                     Write-Verbose -Message ('API rate limit reached. Automatically sleeping for {0} seconds.' -f $sleepInSecs)
                     Start-Sleep -Seconds $sleepInSecs
-                    # Create object schema to resend the header link to re-run last API call that terminated with 429
-                    $results = [PSCustomObject]@{
-                        Content = $null
-                        Headers = @{
-                            Link = '<{0}>' -f $uri
-                        }
+                    # Re-run last API call that terminated with 429
+                    try {
+                        $results = Invoke-WebRequest @restParams
+                    } catch {
+                        $ex = $_
+                        Write-Verbose -Message ("API Rate limit retry:  exception {0} with status code {1}" -f $ex.Exception.GetType().FullName, $ex.Exception.Response.StatusCode.value__)
+                        Write-Verbose -Message ("Throwing exception during API rate limit retry of type {0}" -f $ex.Exception.GetType().FullName)
+                        throw $ex
                     }
                 }
                 '400' {
@@ -179,11 +184,11 @@ function Invoke-FreshworksRestMethod {
                             $ResponseString += $jsonresponse.description + ":" + $jsonresponse.errors[$i].field + " field - " + $jsonresponse.errors[$i].message + ";"
                         }
                     }
-                    Throw "$ex $($ResponseString)"
+                    throw "$ex $($ResponseString)"
                 }
                 default {
                     Write-Verbose -Message ("Throwing Default exception of type {0}" -f $ex.Exception.GetType().FullName)
-                    Throw $ex
+                    throw $ex
                 }
             }
 
@@ -206,7 +211,7 @@ function Invoke-FreshworksRestMethod {
                     Write-Verbose -Message ("Returning {0} property with count {1}" -f $objProperty, $content."$($objProperty)".Count)
                 } else {
                     # invoke-webrequest didn't throw an error per se, but we didn't get content back either
-                    throw ('"{0} : {1}' -f $response.StatusCode, $response | Out-String )
+                    throw ('"{0} : {1}' -f $ex.Exception.Response.StatusCode, $jsonresponse | Out-String )
                 }
             }
         }
